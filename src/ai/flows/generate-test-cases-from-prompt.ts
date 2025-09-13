@@ -19,11 +19,17 @@ export type GenerateTestCasesFromPromptInput = z.infer<
   typeof GenerateTestCasesFromPromptInputSchema
 >;
 
-// Define the output schema
+// Define the output schema for a single test case
+const TestCaseSchema = z.object({
+  scenario: z.string().describe('A descriptive title for the test case scenario.'),
+  description: z.string().describe('A brief explanation of what this test case covers.'),
+  steps: z.array(z.string()).describe('A list of step-by-step instructions to execute the test.'),
+  expected_result: z.string().describe('The expected outcome after executing the test steps.'),
+});
+
+// Define the output schema for the entire generation
 const GenerateTestCasesFromPromptOutputSchema = z.object({
-  testCases: z
-    .string()
-    .describe('Generated test cases based on the input prompt, formatted as a document.'),
+  testCases: z.array(TestCaseSchema).describe('An array of generated test cases.'),
 });
 export type GenerateTestCasesFromPromptOutput = z.infer<
   typeof GenerateTestCasesFromPromptOutputSchema
@@ -44,9 +50,6 @@ async (input) => {
   if (!prompt || prompt.length < 10) {
     return false; // Prompt is too short or empty
   }
-
-  // Add more checks for harmful or inappropriate content if needed
-  // Example: profanity filtering, checking for PII, etc.
   return true; // Assume prompt is valid for now
 });
 
@@ -59,8 +62,7 @@ const generateTestCasesPrompt = ai.definePrompt({
   system: `You are a test case generation expert. Use the provided prompt to generate a set of test cases. Before generating the test cases, use the \`isValidPrompt\` tool to check if the prompt is valid.
 If the prompt is not valid, respond that you cannot generate test cases due to invalid input. Otherwise, generate the test cases.
 Test cases should be comprehensive and cover various scenarios, including positive, negative, and edge cases.
-The output must be a well-formatted document, not a JSON object. Each test case should have a clear scenario, description, steps, and expected result. Use headings and lists to structure the document.
-`,
+The output must be a JSON object that adheres to the provided schema. Each test case should have a clear scenario, description, steps, and expected result.`,
   prompt: `Generate test cases for the following functionality:
 
 {{prompt}}`,
@@ -77,7 +79,8 @@ const generateTestCasesFromPromptFlow = ai.defineFlow(
     const isValid = await isValidPrompt({prompt: input.prompt});
 
     if (!isValid) {
-      return {testCases: 'Could not generate test cases due to invalid input. Please provide a more detailed prompt.'};
+      // Return a valid empty response if the prompt is invalid
+      return {testCases: []};
     }
 
     const {output} = await generateTestCasesPrompt(input);

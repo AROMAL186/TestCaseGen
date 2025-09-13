@@ -9,7 +9,7 @@ export async function handleGenerateTestCases(
   prompt: string
 ): Promise<GenerateTestCasesFromPromptOutput> {
   if (!prompt) {
-    return { testCases: 'Prompt cannot be empty.' };
+    return { testCases: [] };
   }
 
   try {
@@ -17,6 +17,7 @@ export async function handleGenerateTestCases(
     return result;
   } catch (error) {
     console.error('Error generating test cases:', error);
-    return { testCases: 'An unexpected error occurred while generating test cases.' };
+    // Re-throwing the error will be caught by the client and displayed in the toast
+    throw new Error('An unexpected error occurred while generating test cases.');
   }
 }

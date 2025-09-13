@@ -20,6 +20,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { handleGenerateTestCases } from './actions';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { GenerateTestCasesFromPromptOutput } from '@/ai/flows/generate-test-cases-from-prompt';
 
 const formSchema = z.object({
   prompt: z.string().min(10, {
@@ -27,8 +28,10 @@ const formSchema = z.object({
   }),
 });
 
+type TestCase = GenerateTestCasesFromPromptOutput['testCases'][0];
+
 export default function Home() {
-  const [generatedTestCases, setGeneratedTestCases] = useState('');
+  const [generatedTestCases, setGeneratedTestCases] = useState<TestCase[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const { toast } = useToast();
@@ -42,9 +45,16 @@ export default function Home() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
-    setGeneratedTestCases('');
+    setGeneratedTestCases([]);
     try {
       const result = await handleGenerateTestCases(values.prompt);
+      if (result.testCases.length === 0) {
+        toast({
+            title: 'No Test Cases Generated',
+            description: 'The prompt may not have been specific enough. Please try again with a more detailed description.',
+            variant: 'destructive',
+          });
+      }
       setGeneratedTestCases(result.testCases);
     } catch (error) {
       console.error(error);
@@ -58,10 +68,20 @@ export default function Home() {
     }
   }
 
+  const formatTestCasesForDownload = () => {
+    return generatedTestCases
+      .map((tc) => {
+        const steps = tc.steps.map((step, i) => `  ${i + 1}. ${step}`).join('\\n');
+        return `Scenario: ${tc.scenario}\\nDescription: ${tc.description}\\n\\nSteps:\\n${steps}\\n\\nExpected Result: ${tc.expected_result}`;
+      })
+      .join('\\n\\n------------------------------------\\n\\n');
+  };
+
   const copyToClipboard = () => {
-    if (!generatedTestCases || isCopied) return;
+    if (generatedTestCases.length === 0 || isCopied) return;
+    const textToCopy = formatTestCasesForDownload();
     navigator.clipboard
-      .writeText(generatedTestCases)
+      .writeText(textToCopy)
       .then(() => {
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
@@ -77,9 +97,10 @@ export default function Home() {
   };
 
   const downloadAsDocument = () => {
-    if (!generatedTestCases) return;
+    if (generatedTestCases.length === 0) return;
     try {
-      const blob = new Blob([generatedTestCases], { type: 'text/plain;charset=utf-8' });
+      const text = formatTestCasesForDownload();
+      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -156,11 +177,11 @@ export default function Home() {
             </CardContent>
           </Card>
 
-          {(isLoading || generatedTestCases) && (
+          {(isLoading || generatedTestCases.length > 0) && (
             <Card className="w-full animate-in fade-in-50 duration-500 border-border/50">
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-xl">Generated Test Cases</CardTitle>
-                {generatedTestCases && !isLoading && (
+                {generatedTestCases.length > 0 && !isLoading && (
                   <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"
@@ -195,10 +216,21 @@ export default function Home() {
                     <Skeleton className="h-4 w-[95%]" />
                   </div>
                 ) : (
-                  <div className="prose prose-sm prose-invert max-w-none rounded-lg bg-secondary/30 p-4">
-                      <div className="whitespace-pre-wrap rounded-md bg-background p-6 shadow-inner">
-                        {generatedTestCases}
+                  <div className="prose prose-sm prose-invert max-w-none rounded-lg bg-secondary/30 p-4 space-y-4">
+                    {generatedTestCases.map((tc, index) => (
+                      <div key={index} className="rounded-md bg-background p-6 shadow-inner">
+                        <h3 className="not-prose text-lg font-semibold text-primary-foreground">{tc.scenario}</h3>
+                        <p className="text-muted-foreground">{tc.description}</p>
+                        <h4 className="not-prose mt-4 font-semibold">Steps:</h4>
+                        <ol className="list-decimal list-inside text-foreground">
+                          {tc.steps.map((step, i) => (
+                            <li key={i}>{step}</li>
+                          ))}
+                        </ol>
+                        <h4 className="not-prose mt-4 font-semibold">Expected Result:</h4>
+                        <p className="text-foreground">{tc.expected_result}</p>
                       </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
