@@ -71,10 +71,10 @@ export default function Home() {
   const formatTestCasesForDownload = () => {
     return generatedTestCases
       .map((tc) => {
-        const steps = tc.steps.map((step, i) => `  ${i + 1}. ${step}`).join('\\n');
-        return `Scenario: ${tc.scenario}\\nDescription: ${tc.description}\\n\\nSteps:\\n${steps}\\n\\nExpected Result: ${tc.expected_result}`;
+        const steps = tc.steps.map((step, i) => `  ${i + 1}. ${step}`).join('\n');
+        return `Scenario: ${tc.scenario}\nDescription: ${tc.description}\n\nSteps:\n${steps}\n\nExpected Result: ${tc.expected_result}`;
       })
-      .join('\\n\\n------------------------------------\\n\\n');
+      .join('\n\n------------------------------------\n\n');
   };
 
   const copyToClipboard = () => {
@@ -100,7 +100,7 @@ export default function Home() {
     if (generatedTestCases.length === 0) return;
     try {
       const text = formatTestCasesForDownload();
-      const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      const blob = new Blob([text.replace(/\\n/g, '\n')], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -150,6 +150,7 @@ export default function Home() {
                         </FormLabel>
                         <FormControl>
                           <Textarea
+                            suppressHydrationWarning
                             placeholder="e.g., A user login form with email and password fields, including a 'remember me' checkbox."
                             className="min-h-[120px] resize-y bg-background/50 focus:bg-background"
                             disabled={isLoading}
