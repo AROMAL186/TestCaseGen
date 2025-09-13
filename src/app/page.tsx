@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { WandSparkles, ClipboardCopy, Check, Loader2 } from 'lucide-react';
+import { WandSparkles, ClipboardCopy, Check, Loader2, FileDown } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -76,6 +76,28 @@ export default function Home() {
       });
   };
 
+  const downloadAsDocument = () => {
+    if (!generatedTestCases) return;
+    try {
+      const blob = new Blob([generatedTestCases], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'test-cases.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Failed to download: ', err);
+      toast({
+        title: 'Download Error',
+        description: 'Could not download test cases.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   return (
     <main className="bg-background text-foreground">
       <div className="container mx-auto flex min-h-screen flex-col items-center justify-center p-4 sm:p-8">
@@ -139,18 +161,28 @@ export default function Home() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-xl">Generated Test Cases</CardTitle>
                 {generatedTestCases && !isLoading && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={copyToClipboard}
-                    aria-label="Copy to clipboard"
-                  >
-                    {isCopied ? (
-                      <Check className="h-5 w-5 text-accent transition-transform duration-300 scale-110" />
-                    ) : (
-                      <ClipboardCopy className="h-5 w-5 text-accent/80 hover:text-accent transition-colors" />
-                    )}
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={copyToClipboard}
+                      aria-label="Copy to clipboard"
+                    >
+                      {isCopied ? (
+                        <Check className="h-5 w-5 text-accent transition-transform duration-300 scale-110" />
+                      ) : (
+                        <ClipboardCopy className="h-5 w-5 text-accent/80 hover:text-accent transition-colors" />
+                      )}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={downloadAsDocument}
+                      aria-label="Download document"
+                    >
+                      <FileDown className="h-5 w-5 text-accent/80 hover:text-accent transition-colors" />
+                    </Button>
+                  </div>
                 )}
               </CardHeader>
               <CardContent>
@@ -163,9 +195,13 @@ export default function Home() {
                     <Skeleton className="h-4 w-[95%]" />
                   </div>
                 ) : (
-                  <pre className="whitespace-pre-wrap rounded-md bg-secondary/50 p-4 font-code text-sm text-secondary-foreground">
-                    {generatedTestCases}
-                  </pre>
+                  <div className="p-4 bg-secondary/30 rounded-lg">
+                    <div className="p-6 bg-background rounded-md shadow-inner">
+                      <pre className="whitespace-pre-wrap font-code text-sm text-secondary-foreground">
+                        {generatedTestCases}
+                      </pre>
+                    </div>
+                  </div>
                 )}
               </CardContent>
             </Card>
