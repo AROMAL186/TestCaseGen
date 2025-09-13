@@ -79,7 +79,7 @@ export default function Home() {
   const downloadAsDocument = () => {
     if (!generatedTestCases) return;
     try {
-      const blob = new Blob([generatedTestCases], { type: 'text/plain' });
+      const blob = new Blob([generatedTestCases], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -195,12 +195,10 @@ export default function Home() {
                     <Skeleton className="h-4 w-[95%]" />
                   </div>
                 ) : (
-                  <div className="p-4 bg-secondary/30 rounded-lg">
-                    <div className="p-6 bg-background rounded-md shadow-inner">
-                      <pre className="whitespace-pre-wrap font-code text-sm text-secondary-foreground">
+                  <div className="prose prose-sm prose-invert max-w-none rounded-lg bg-secondary/30 p-4">
+                      <div className="whitespace-pre-wrap rounded-md bg-background p-6 shadow-inner">
                         {generatedTestCases}
-                      </pre>
-                    </div>
+                      </div>
                   </div>
                 )}
               </CardContent>

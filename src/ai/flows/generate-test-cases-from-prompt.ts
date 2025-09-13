@@ -23,7 +23,7 @@ export type GenerateTestCasesFromPromptInput = z.infer<
 const GenerateTestCasesFromPromptOutputSchema = z.object({
   testCases: z
     .string()
-    .describe('Generated test cases based on the input prompt.'),
+    .describe('Generated test cases based on the input prompt, formatted as a document.'),
 });
 export type GenerateTestCasesFromPromptOutput = z.infer<
   typeof GenerateTestCasesFromPromptOutputSchema
@@ -59,7 +59,7 @@ const generateTestCasesPrompt = ai.definePrompt({
   system: `You are a test case generation expert. Use the provided prompt to generate a set of test cases. Before generating the test cases, use the \`isValidPrompt\` tool to check if the prompt is valid.
 If the prompt is not valid, respond that you cannot generate test cases due to invalid input. Otherwise, generate the test cases.
 Test cases should be comprehensive and cover various scenarios, including positive, negative, and edge cases.
-The output must be plain text. Do not put the output in code blocks.
+The output must be a well-formatted document, not a JSON object. Each test case should have a clear scenario, description, steps, and expected result. Use headings and lists to structure the document.
 `,
   prompt: `Generate test cases for the following functionality:
 
