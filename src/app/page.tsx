@@ -99,12 +99,39 @@ export default function Home() {
   const downloadAsDocument = () => {
     if (generatedTestCases.length === 0) return;
     try {
-      const text = formatTestCasesForDownload();
-      const blob = new Blob([text.replace(/\\n/g, '\n')], { type: 'text/plain;charset=utf-8' });
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Test Cases</title>
+          </head>
+          <body>
+            <h1>Generated Test Cases</h1>
+            ${generatedTestCases
+              .map(
+                (tc) => `
+              <div style="margin-bottom: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 5px;">
+                <h2>${tc.scenario}</h2>
+                <p><strong>Description:</strong> ${tc.description}</p>
+                <h3>Steps:</h3>
+                <ol>
+                  ${tc.steps.map((step) => `<li>${step}</li>`).join('')}
+                </ol>
+                <h3>Expected Result:</h3>
+                <p>${tc.expected_result}</p>
+              </div>`
+              )
+              .join('')}
+          </body>
+        </html>
+      `;
+
+      const blob = new Blob([htmlContent], { type: 'application/msword' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'test-cases.txt';
+      a.download = 'test-cases.doc';
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
