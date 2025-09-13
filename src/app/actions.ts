@@ -17,6 +17,6 @@ export async function handleGenerateTestCases(
     return result;
   } catch (error) {
     console.error('Error generating test cases:', error);
-    throw new Error('An unexpected error occurred while generating test cases.');
+    return { testCases: 'An unexpected error occurred while generating test cases.' };
   }
 }
