@@ -71,8 +71,7 @@ export default function Home() {
   const formatTestCasesForDownload = () => {
     return generatedTestCases
       .map((tc) => {
-        const steps = tc.steps.map((step, i) => `  ${i + 1}. ${step}`).join('\n');
-        return `Scenario: ${tc.scenario}\nDescription: ${tc.description}\n\nSteps:\n${steps}\n\nExpected Result: ${tc.expected_result}`;
+        return `Test Case ID: ${tc.id}\nDescription: ${tc.description}\nExpected Result: ${tc.expected_result}`;
       })
       .join('\n\n------------------------------------\n\n');
   };
@@ -112,12 +111,8 @@ export default function Home() {
               .map(
                 (tc) => `
               <div style="margin-bottom: 20px; border: 1px solid #ccc; padding: 15px; border-radius: 5px;">
-                <h2>${tc.scenario}</h2>
+                <h2>Test Case ID: ${tc.id}</h2>
                 <p><strong>Description:</strong> ${tc.description}</p>
-                <h3>Steps:</h3>
-                <ol>
-                  ${tc.steps.map((step) => `<li>${step}</li>`).join('')}
-                </ol>
                 <h3>Expected Result:</h3>
                 <p>${tc.expected_result}</p>
               </div>`
@@ -247,14 +242,8 @@ export default function Home() {
                   <div className="prose prose-sm prose-invert max-w-none rounded-lg bg-secondary/30 p-4 space-y-4">
                     {generatedTestCases.map((tc, index) => (
                       <div key={index} className="rounded-md bg-background p-6 shadow-inner">
-                        <h3 className="not-prose text-lg font-semibold text-primary-foreground">{tc.scenario}</h3>
+                        <h3 className="not-prose text-lg font-semibold text-primary-foreground">Test Case ID: {tc.id}</h3>
                         <p className="text-muted-foreground">{tc.description}</p>
-                        <h4 className="not-prose mt-4 font-semibold">Steps:</h4>
-                        <ol className="list-decimal list-inside text-foreground">
-                          {tc.steps.map((step, i) => (
-                            <li key={i}>{step}</li>
-                          ))}
-                        </ol>
                         <h4 className="not-prose mt-4 font-semibold">Expected Result:</h4>
                         <p className="text-foreground">{tc.expected_result}</p>
                       </div>

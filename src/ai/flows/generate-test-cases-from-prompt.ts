@@ -21,9 +21,8 @@ export type GenerateTestCasesFromPromptInput = z.infer<
 
 // Define the output schema for a single test case
 const TestCaseSchema = z.object({
-  scenario: z.string().describe('A descriptive title for the test case scenario.'),
+  id: z.string().describe('A unique identifier for the test case (e.g., "TC-001").'),
   description: z.string().describe('A brief explanation of what this test case covers.'),
-  steps: z.array(z.string()).describe('A list of step-by-step instructions to execute the test.'),
   expected_result: z.string().describe('The expected outcome after executing the test steps.'),
 });
 
@@ -61,8 +60,7 @@ const generateTestCasesPrompt = ai.definePrompt({
   tools: [isValidPrompt],
   system: `You are a test case generation expert. Use the provided prompt to generate a set of test cases. Before generating the test cases, use the \`isValidPrompt\` tool to check if the prompt is valid.
 If the prompt is not valid, respond that you cannot generate test cases due to invalid input. Otherwise, generate the test cases.
-Test cases should be comprehensive and cover various scenarios, including positive, negative, and edge cases.
-The output must be a JSON object that adheres to the provided schema. Each test case should have a clear scenario, description, steps, and expected result.`,
+The output must be a JSON object that adheres to the provided schema. Each test case should have a unique ID, a description, and an expected result.`,
   prompt: `Generate test cases for the following functionality:
 
 {{prompt}}`,
